@@ -102,7 +102,8 @@ defineExpose({
       }"
       :loading="loading"
       class="w-full"
-      @click="handleSubmit">
+      @click="handleSubmit"
+    >
       <slot name="submitButtonText">
         {{ submitButtonText || $t('common.login') }}
       </slot>

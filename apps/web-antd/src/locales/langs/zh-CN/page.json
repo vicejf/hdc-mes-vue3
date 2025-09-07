@@ -10,5 +10,10 @@
     "title": "概览",
     "analytics": "分析页",
     "workspace": "工作台"
+  },
+
+  "prod": {
+    "title": "生产管理",
+    "ierec": "含浸电解液检测记录"
   }
 }

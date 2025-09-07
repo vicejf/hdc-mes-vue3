@@ -18,7 +18,7 @@ hdc-mes-vue3 是 hdc-mes 的前端项目，基于 vue3 + vite + typescript + vbe
 
 ## 文档
 
-[文档地址](https://doc.vben.pro/)
+所有的get post请求都在request.ts请求头中添加了token [文档地址](https://doc.vben.pro/)
 
 ## 安装使用
 
@@ -29,6 +29,8 @@ git clone https://github.com/vbenjs/vue-vben-admin.git
 ```
 
 2. 安装依赖
+
+在ide中安装Iconify IntelliSense插件 便于图标使用
 
 ```bash
 cd vue-vben-admin

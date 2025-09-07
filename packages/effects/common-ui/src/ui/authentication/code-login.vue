@@ -43,7 +43,7 @@ defineOptions({
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
-  loginPath: '/auth/login',
+  loginPath: '/login',
   submitButtonText: '',
   subTitle: '',
   title: '',
@@ -86,9 +86,7 @@ defineExpose({
 <template>
   <div>
     <Title>
-      <slot name="title">
-        {{ title || $t('authentication.welcomeBack') }} 📲
-      </slot>
+      <slot name="title"> {{ title || $t('authentication.welcomeBack') }} 📲 </slot>
       <template #desc>
         <span class="text-muted-foreground">
           <slot name="subTitle">
@@ -104,8 +102,7 @@ defineExpose({
       }"
       :loading="loading"
       class="w-full"
-      @click="handleSubmit"
-    >
+      @click="handleSubmit">
       <slot name="submitButtonText">
         {{ submitButtonText || $t('common.login') }}
       </slot>

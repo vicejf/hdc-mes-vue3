@@ -25,10 +25,7 @@ export const useAuthStore = defineStore('auth', () => {
    * Asynchronously handle the login process
    * @param params 登录表单数据
    */
-  async function authLogin(
-    params: Recordable<any>,
-    onSuccess?: () => Promise<void> | void,
-  ) {
+  async function authLogin(params: Recordable<any>, onSuccess?: () => Promise<void> | void) {
     // 异步处理用户登录操作并获取 accessToken
     let userInfo: null | UserInfo = null;
     try {
@@ -55,9 +52,7 @@ export const useAuthStore = defineStore('auth', () => {
         } else {
           onSuccess
             ? await onSuccess?.()
-            : await router.push(
-                userInfo.homePath || preferences.app.defaultHomePath,
-              );
+            : await router.push(userInfo?.homePath || preferences.app.defaultHomePath);
         }
 
         if (userInfo?.realName) {
@@ -99,7 +94,13 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function fetchUserInfo() {
     let userInfo: null | UserInfo = null;
-    userInfo = await getUserInfoApi();
+    try {
+      userInfo = await getUserInfoApi();
+    } catch {
+      // 捕获异常，重定向到登录页
+      await logout();
+      return null;
+    }
     userStore.setUserInfo(userInfo);
     return userInfo;
   }

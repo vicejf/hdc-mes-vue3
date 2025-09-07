@@ -44,7 +44,7 @@ defineOptions({
 const props = withDefaults(defineProps<Props>(), {
   description: '',
   loading: false,
-  loginPath: '/auth/login',
+  loginPath: '/login',
   submitButtonText: '',
   subTitle: '',
   title: '',
@@ -67,9 +67,7 @@ function goToLogin() {
 <template>
   <div>
     <Title>
-      <slot name="title">
-        {{ title || $t('authentication.welcomeBack') }} 📱
-      </slot>
+      <slot name="title"> {{ title || $t('authentication.welcomeBack') }} 📱 </slot>
       <template #desc>
         <span class="text-muted-foreground">
           <slot name="subTitle">

@@ -35,10 +35,7 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
     const accessStore = useAccessStore();
     const authStore = useAuthStore();
     accessStore.setAccessToken(null);
-    if (
-      preferences.app.loginExpiredMode === 'modal' &&
-      accessStore.isAccessChecked
-    ) {
+    if (preferences.app.loginExpiredMode === 'modal' && accessStore.isAccessChecked) {
       accessStore.setLoginExpired(true);
     } else {
       await authStore.logout();
@@ -76,7 +73,7 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
     defaultResponseInterceptor({
       codeField: 'code',
       dataField: 'data',
-      successCode: 0,
+      successCode: 200, // 修改为与后端实际返回的成功状态码匹配
     }),
   );
 

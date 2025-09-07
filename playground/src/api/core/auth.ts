@@ -22,22 +22,21 @@ export namespace AuthApi {
  * 登录
  */
 export async function loginApi(data: AuthApi.LoginParams) {
-  return requestClient.post<AuthApi.LoginResult>('/auth/login', data, {
+  // 使用baseRequestClient以获取完整的响应对象，因为后端的AjaxResult格式不遵循默认的dataField规范
+  const response = await baseRequestClient.post('/login', data, {
     withCredentials: true,
   });
+  // 直接返回包含accessToken的对象，符合AuthApi.LoginResult接口定义
+  return { accessToken: response.accessToken };
 }
 
 /**
  * 刷新accessToken
  */
 export async function refreshTokenApi() {
-  return baseRequestClient.post<AuthApi.RefreshTokenResult>(
-    '/auth/refresh',
-    null,
-    {
-      withCredentials: true,
-    },
-  );
+  return baseRequestClient.post<AuthApi.RefreshTokenResult>('/auth/refresh', null, {
+    withCredentials: true,
+  });
 }
 
 /**

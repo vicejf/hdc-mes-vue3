@@ -3,6 +3,7 @@
   "pageTitle": "Plug-and-play Admin system",
   "pageDesc": "Efficient, versatile frontend template",
   "loginSuccess": "Login Successful",
+  "loginFailure": "Login Failed",
   "loginSuccessDesc": "Welcome Back",
   "loginSubtitle": "Enter your account details to manage your projects",
   "selectAccount": "Quick Select Account",
@@ -57,5 +58,6 @@
     "center": "Align Center",
     "alignLeft": "Align Left",
     "alignRight": "Align Right"
-  }
+  },
+  "autoLoginFailed": "Auto login failed"
 }

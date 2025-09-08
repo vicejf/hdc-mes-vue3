@@ -23,9 +23,9 @@ export namespace AuthApi {
  */
 export async function loginApi(data: AuthApi.LoginParams) {
   // 使用baseRequestClient以获取完整的响应对象，因为后端的AjaxResult格式不遵循默认的dataField规范
-  const response = await baseRequestClient.post('/login', data);
+  const response = await requestClient.post('/login', data);
   // 直接返回包含accessToken的对象，符合AuthApi.LoginResult接口定义
-  return { accessToken: response.data.accessToken };
+  return { accessToken: response.accessToken };
 }
 
 /**

@@ -50,6 +50,19 @@ function setupAccessGuard(router: Router) {
     const userStore = useUserStore();
     const authStore = useAuthStore();
 
+    // 检查URL参数中是否有token和redirect参数，如果有则尝试自动登录
+    const token = to.query.token as string;
+    const redirectPath = to.query.redirect as string;
+
+    if (token) {
+      // 尝试通过URL参数自动登录
+      const loginSuccess = await authStore.autoLoginByUrlParams(token, redirectPath);
+      if (loginSuccess) {
+        // 自动登录成功，不需要继续执行后续逻辑
+        return false;
+      }
+    }
+
     // 基本路由，这些路由不需要进入权限拦截
     if (coreRouteNames.includes(to.name as string)) {
       if (to.path === LOGIN_PATH && accessStore.accessToken) {
@@ -112,13 +125,13 @@ function setupAccessGuard(router: Router) {
     accessStore.setAccessMenus(accessibleMenus);
     accessStore.setAccessRoutes(accessibleRoutes);
     accessStore.setIsAccessChecked(true);
-    const redirectPath = (from.query.redirect ??
+    const finalRedirectPath = (from.query.redirect ??
       (to.path === preferences.app.defaultHomePath
         ? userInfo?.homePath || preferences.app.defaultHomePath
         : to.fullPath)) as string;
 
     return {
-      ...router.resolve(decodeURIComponent(redirectPath)),
+      ...router.resolve(decodeURIComponent(finalRedirectPath)),
       replace: true,
     };
   });

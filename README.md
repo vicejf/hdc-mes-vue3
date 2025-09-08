@@ -19,6 +19,7 @@ hdc-mes-vue3 是 hdc-mes 的前端项目，基于 vue3 + vite + typescript + vbe
 ## 文档
 
 所有的get post请求都在request.ts请求头中添加了token [文档地址](https://doc.vben.pro/)
+全局通知notification
 
 ## 安装使用
 

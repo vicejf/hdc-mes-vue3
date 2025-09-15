@@ -45,6 +45,7 @@
     "dayjs": "catalog:",
     "pinia": "catalog:",
     "vue": "catalog:",
-    "vue-router": "catalog:"
+    "vue-router": "catalog:",
+    "xe-utils": "^3.7.9"
   }
 }

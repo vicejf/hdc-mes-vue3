@@ -525,6 +525,10 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      xe-utils:
+        specifier: ^3.7.9
+        version: 3.7.9
     devDependencies:
       '@changesets/changelog-github':
         specifier: 'catalog:'
@@ -704,6 +708,9 @@ importers:
       vue-router:
         specifier: 'catalog:'
         version: 4.5.1(vue@3.5.17(typescript@5.8.3))
+      xe-utils:
+        specifier: ^3.7.9
+        version: 3.7.9
 
   docs:
     dependencies:
@@ -11384,11 +11391,8 @@ packages:
     resolution: {integrity: sha512-GCPAHLvrIH13+c0SuacwvRYj2SxJXQ4kaVTT5xgL3kPrz56XxkF21IGhjSE1+W0aw7gpBWRGXLCPnPby6lSpmQ==}
     engines: {node: '>=12'}
 
-  xe-utils@3.7.4:
-    resolution: {integrity: sha512-9yuCHLOU+og4OEkPWWtzrYk1Zt1hgN66U/NCJ0+vYJSx1MplBtoQRz8aEA+2RmCr3leLru98vQxNpw/vJsu/sg==}
-
-  xe-utils@3.7.8:
-    resolution: {integrity: sha512-V/k6B/ASYir6yLYhp62DnM17po9u1N9mou/rn4if5WoFCsAO49JpCiVpkDpwCv4zxGfWmhWgzmz4FytWF+pDVw==}
+  xe-utils@3.7.9:
+    resolution: {integrity: sha512-LWH6M7g+TKX8P2fqGxDPgJQygiULhbMtpmfxTMxJTUjuUv9y2+I45UCcVLh5AnmJSxDV1xTxsq7G5P9Eid06JQ==}
 
   xml-name-validator@4.0.0:
     resolution: {integrity: sha512-ICP2e+jsHvAj2E2lIHxa5tjXRlKDJo4IdvPvCXbXQGdzSfmSpNVyIKMvoZHjDY9DP0zV17iI85o90vRFXNccRw==}
@@ -15489,7 +15493,7 @@ snapshots:
     dependencies:
       dom-zindex: 1.0.6
       vue: 3.5.17(typescript@5.8.3)
-      xe-utils: 3.7.8
+      xe-utils: 3.7.9
 
   '@whatwg-node/disposablestack@0.0.6':
     dependencies:
@@ -21795,7 +21799,7 @@ snapshots:
       '@rollup/pluginutils': 5.1.4(rollup@4.44.1)
       es-module-lexer: 1.7.0
       rollup: 4.44.1
-      xe-utils: 3.7.4
+      xe-utils: 3.7.9
 
   vite-plugin-pwa@1.0.1(vite@5.4.18(@types/node@22.16.0)(less@4.3.0)(sass@1.89.2)(terser@5.39.0))(workbox-build@7.3.0)(workbox-window@7.3.0):
     dependencies:
@@ -22327,9 +22331,7 @@ snapshots:
 
   xdg-basedir@5.1.0: {}
 
-  xe-utils@3.7.4: {}
-
-  xe-utils@3.7.8: {}
+  xe-utils@3.7.9: {}
 
   xml-name-validator@4.0.0: {}
 

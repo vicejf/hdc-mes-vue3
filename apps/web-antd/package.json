@@ -26,6 +26,7 @@
     "#/*": "./src/*"
   },
   "dependencies": {
+    "@ant-design/icons-vue": "catalog:",
     "@vben/access": "workspace:*",
     "@vben/common-ui": "workspace:*",
     "@vben/constants": "workspace:*",
@@ -46,6 +47,6 @@
     "pinia": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:",
-    "xe-utils": "^3.7.9"
+    "xe-utils": "catalog:"
   }
 }

@@ -33,7 +33,7 @@ interface FormModalProps {
   visible: boolean;
   editMode: boolean; // true  编辑| false 新增
   currentRecord: ElectrolyteTest | null;
-  onSave: (formData: UpdateParams) => Promise<void>;
+  onSave: (formData: UpdateParams<ElectrolyteTest>) => Promise<void>;
 }
 
 const props = defineProps<FormModalProps>();

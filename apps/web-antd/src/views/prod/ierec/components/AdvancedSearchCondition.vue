@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { DefaultOptionType } from 'ant-design-vue/es/select';
 
+import type { WhereItem } from '#/utils/query';
+
 import { onMounted, ref } from 'vue';
 
 import { MinusBox } from '@vben/icons';
@@ -8,7 +10,7 @@ import { MinusBox } from '@vben/icons';
 import { Button, Col, DatePicker, Input, InputNumber, Row, Select, Space } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
-import { FieldType, QueryOperator } from '../types';
+import { FieldType, QueryOperator } from '#/utils/query';
 
 //
 // 类型定义
@@ -22,12 +24,6 @@ export interface FieldConfig {
   init?: boolean; // 是否固定展示
 }
 
-export interface SearchCondition {
-  field: string;
-  operator: QueryOperator;
-  value: any;
-}
-
 //
 // Props & Emits
 //
@@ -36,7 +32,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'search', conditions: SearchCondition[]): void;
+  (e: 'search', conditions: WhereItem[]): void;
   (e: 'reset'): void;
 }>();
 
@@ -97,7 +93,7 @@ const PLACEHOLDERS: Partial<Record<FieldType, string>> = {
 // 状态管理
 //
 const loading = ref(false);
-const conditions = ref<SearchCondition[]>([]);
+const conditions = ref<WhereItem[]>([]);
 
 onMounted(() => {
   resetConditions();
@@ -129,7 +125,7 @@ function getOperatorOptions(fieldConfig: FieldConfig): DefaultOptionType[] {
   return ops.map((op) => ({ value: op, label: OPERATOR_LABELS[op] }));
 }
 
-function getInputType(cond: SearchCondition, field: FieldConfig): string {
+function getInputType(cond: WhereItem, field: FieldConfig): string {
   if (
     field.type === FieldType.ENUM &&
     [QueryOperator.IN, QueryOperator.NOT_IN].includes(cond.operator)
@@ -158,7 +154,7 @@ function getInputType(cond: SearchCondition, field: FieldConfig): string {
   }
 }
 
-function getPlaceholder(cond: SearchCondition, field: FieldConfig): string {
+function getPlaceholder(cond: WhereItem, field: FieldConfig): string {
   if ([QueryOperator.LIKE, QueryOperator.NOT_LIKE].includes(cond.operator)) {
     return '输入关键词';
   }

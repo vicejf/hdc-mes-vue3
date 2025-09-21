@@ -1,15 +1,8 @@
-import type { PageResult, SearchParams, UpdateParams } from './type';
-
-import type { ElectrolyteTest } from '#/views/prod/ierec/types';
+import type { PageResult, SearchParams, UpdateParams } from '#/utils/query';
+import type { ElectrolyteTest } from '#/views/prod/ierec/components/ierec';
 
 import { requestClient } from '#/api/request';
-
-export namespace ProdApi {
-  /**
-   * 分页结果接口，与后端PageResult类对应
-   */
-  export type updateParams = Partial<PageResult<ElectrolyteTest>>;
-}
+import buildWhere from '#/utils/query';
 
 /**
  * 查询电解液检测记录（使用QueryBaseVO）
@@ -17,6 +10,7 @@ export namespace ProdApi {
  * @returns 查询结果
  */
 export const getIerecByQueryBase = (params: SearchParams) => {
+  params.where = buildWhere(params.where); // 默认 dr=0，可被覆盖
   return requestClient.post<PageResult<ElectrolyteTest>>('/prod/ierec', params);
 };
 

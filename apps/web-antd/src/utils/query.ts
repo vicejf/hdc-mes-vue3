@@ -1,6 +1,4 @@
-import type { FieldType } from '#/views/prod/ierec/types';
-
-// 查询操作符枚举
+// 类型定义
 export enum QueryOperator {
   BETWEEN = 'BETWEEN', // 介于
   EQ = 'EQ', // 等于
@@ -13,6 +11,15 @@ export enum QueryOperator {
   NE = 'NE', // 不等于
   NOT_IN = 'NOT_IN', // 不在列表中
   NOT_LIKE = 'NOT_LIKE', // 不包含
+}
+
+// 字段类型枚举
+export enum FieldType {
+  BOOLEAN = 'boolean',
+  DATE = 'date',
+  ENUM = 'enum',
+  NUMBER = 'number',
+  STRING = 'string',
 }
 
 /**
@@ -48,10 +55,10 @@ export interface SearchParams {
    */
   sortOrder?: 'asc' | 'desc';
 
-  where?: SearchCondition[];
+  where: WhereItem[];
 }
 
-export type UpdateParams<T> = { item: Partial<T>; where?: SearchParams['where'] };
+export type UpdateParams<T> = { item: Partial<T>; where: SearchParams['where'] };
 
 export interface PageResult<T> {
   currentPage: number;
@@ -62,3 +69,25 @@ export interface PageResult<T> {
   totalNum: number;
   datas: T[];
 }
+
+export type WhereItem = {
+  field: string;
+  operator: QueryOperator;
+  value: any;
+};
+
+/** 系统级默认条件，禁止在运行时修改 */
+const DEFAULT_WHERE: Readonly<Record<string, WhereItem>> = {
+  dr: { field: 'dr', operator: QueryOperator.EQ, value: '0' },
+};
+
+const buildWhere = (
+  userWhere: WhereItem[] = [],
+  defaults: Readonly<Record<string, WhereItem>> = DEFAULT_WHERE,
+): WhereItem[] => {
+  const map = new Map(Object.entries(defaults));
+  userWhere.forEach((item) => map.set(item.field, item));
+  return [...map.values()];
+};
+
+export default buildWhere;

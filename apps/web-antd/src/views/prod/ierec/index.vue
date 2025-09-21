@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import type { FieldConfig } from './components/AdvancedSearchCondition.vue';
-import type { ElectrolyteTest } from './types';
+import type { ElectrolyteTest } from './components/ierec';
 
 import type { VxeGridProps, VxeGridPropTypes } from '#/adapter/vxe-table';
-import type { SearchParams, UpdateParams } from '#/api/mes/type';
+import type { SearchParams, UpdateParams } from '#/utils/query';
 
 import { onMounted, ref } from 'vue';
 
@@ -13,18 +13,19 @@ import { Button, Card, message, Modal, Space } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { getIerecByQueryBase, updateIerec } from '#/api/mes/prod';
-import { QueryOperator } from '#/api/mes/type';
+import { FieldType, QueryOperator } from '#/utils/query';
 
 import AdvancedSearchCondition from './components/AdvancedSearchCondition.vue';
 import FormModal from './components/FormModal.vue';
-import { FieldType } from './types';
 
 const { Compact: SpaceCompact } = Space;
 
 const modelValue = ref(false);
 const editMode = ref(false);
 const currentRecord = ref<ElectrolyteTest | null>(null);
-const searchParams = ref<SearchParams>({});
+const searchParams = ref<SearchParams>({
+  where: [],
+});
 
 // 搜索字段配置
 const searchFields: FieldConfig[] = [

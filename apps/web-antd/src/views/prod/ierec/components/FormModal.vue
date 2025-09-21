@@ -5,7 +5,7 @@
  * @description 此组件用于编辑新增电解液检测记录
  */
 
-import type { ElectrolyteTest, FormState } from '../types';
+import type { ElectrolyteTest } from './ierec';
 
 import { computed, reactive, ref, watch } from 'vue';
 
@@ -99,7 +99,10 @@ watch(
 // 验证规则定义
 const validationRules = reactive<
   Record<
-    keyof Pick<FormState, 'conductivity' | 'flash_voltage' | 'ph' | 'water_data1' | 'water_data2'>,
+    keyof Pick<
+      ElectrolyteTest,
+      'conductivity' | 'flash_voltage' | 'ph' | 'water_data1' | 'water_data2'
+    >,
     { label: string; max: number; min: number; unit: string; warning: number }
   >
 >({
@@ -152,23 +155,35 @@ const isOverallValid = computed(() => {
   return Object.values(fieldValidity).every((isValid) => isValid === null || isValid === true);
 });
 
+// 监听isOverallValid变化，更新overallResult
+watch(isOverallValid, (newValue) => {
+  overallResult.value = newValue;
+  form.value.overall_result = newValue;
+});
+
 // 监听props.visible变化，保持localvisible与props同步
 watch(
   () => props.visible,
   (newVisible) => {
-    if (newVisible) {
-      localvisible.value = newVisible;
-      if (props.editMode && props.record) {
-        // 编辑
-        Object.assign(form, props.record);
-        // formCache.value = form;
-        validateAllFields();
-      }
+    localvisible.value = newVisible;
+    if (newVisible && props.editMode && props.record) {
+      // 编辑
+      Object.assign(form, props.record);
+      // formCache.value = form;
+      validateAllFields();
+      // 初始化时也更新overallResult
+      overallResult.value = isOverallValid.value;
+      form.value.overall_result = isOverallValid.value;
     }
   },
 );
+
 // 点击保存
 const handleOk = () => {
+  // 在保存前确保overall_result是最新的计算结果
+  form.value.overall_result = isOverallValid.value;
+  overallResult.value = isOverallValid.value;
+
   if (isDirty()) {
     if (props.editMode) {
       // 编辑模式：只提交脏字段
@@ -191,10 +206,11 @@ const handleCancel = () => {
 
 <template>
   <Modal
-    :open="props.visible"
+    v-model:open="localvisible"
     :title="editMode ? '编辑检测记录' : '新增检测记录'"
     width="880px"
     height="1000px"
+    @cancel="handleCancel"
   >
     <Form :model="form" layout="vertical" @finish="handleOk" @cancel="handleCancel">
       <Row :gutter="16">
@@ -378,7 +394,7 @@ const handleCancel = () => {
         <Tag :color="overallResult ? 'green' : 'red'" size="large">
           {{ overallResult === true ? '合格' : '不合格' }}
         </Tag>
-        <div v-if="isOverallValid" style="margin-top: 8px; color: #ff4d4f">
+        <div v-if="!isOverallValid" style="margin-top: 8px; color: #ff4d4f">
           提示：请检查各项指标是否符合标准要求
         </div>
       </FormItem>

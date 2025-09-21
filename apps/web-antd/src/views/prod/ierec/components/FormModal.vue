@@ -7,8 +7,6 @@
 
 import type { ElectrolyteTest, FormState } from '../types';
 
-import type { UpdateParams } from '#/api/mes/type';
-
 import { computed, reactive, ref, watch } from 'vue';
 
 import { useUserStore } from '@vben/stores';
@@ -22,40 +20,37 @@ import {
   FormItem,
   Input,
   InputNumber,
+  message,
   Modal,
   Row,
   Tag,
 } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
-// 更简洁的props定义，使用v-model语法糖
+import { useDirtyForm } from '#/utils/useDirtyForm';
+
 interface FormModalProps {
   visible: boolean;
   editMode: boolean; // true  编辑| false 新增
-  currentRecord: ElectrolyteTest | null;
-  onSave: (formData: UpdateParams<ElectrolyteTest>) => Promise<void>;
+  record: ElectrolyteTest | null;
 }
 
 const props = defineProps<FormModalProps>();
 
 // 定义emit事件
 const emit = defineEmits<{
-  'update:editMode': [value: boolean];
-  'update:visible': [value: boolean];
+  (e: 'save', formData: { item: Partial<ElectrolyteTest> }): void;
+  (e: 'cancel'): void;
 }>();
 
-// 创建本地响应式变量来控制Modal的显示状态，避免直接修改props
-const localvisible = ref(false);
-const saving = ref(false);
-const formRef = ref();
-const overallResult = ref<boolean>(false);
 const userStore = useUserStore();
 
-const formState = reactive<FormState>({
+// 默认值
+const initialFormData: ElectrolyteTest = {
   equipment_no: '',
   form_number: 'MDR44A3',
   test_date: dayjs().format('YYYY-MM-DD'),
-  inspector: '',
+  inspector: userStore.userInfo?.realName || userStore.userInfo?.username || '',
   electrolyte_type: '',
   temperature: 0,
   conductivity: 0,
@@ -72,7 +67,34 @@ const formState = reactive<FormState>({
   created_at: '',
   ts: '',
   dr: '0',
-});
+  id: '',
+  remarks: '',
+};
+
+// 状态管理
+const localvisible = ref(false);
+const saving = ref(false);
+const overallResult = ref<boolean>(false);
+// === 使用脏表单逻辑 ===
+const {
+  form, // 当前表单数据（v-model 绑定用）
+  setInitialForm,
+  getDirtyFields,
+  isDirty,
+} = useDirtyForm<ElectrolyteTest>(initialFormData);
+
+// 当 record 变化时，初始化表单
+watch(
+  () => props.record,
+  (newVal) => {
+    if (newVal) {
+      setInitialForm(newVal);
+    } else {
+      setInitialForm(initialFormData); // 新增时重置
+    }
+  },
+  { immediate: true },
+);
 
 // 验证规则定义
 const validationRules = reactive<
@@ -121,7 +143,7 @@ const validateField = (fieldName: keyof typeof validationRules, value: number) =
 const validateAllFields = () => {
   Object.keys(validationRules).forEach((field) => {
     const fieldName = field as keyof typeof validationRules;
-    validateField(fieldName, formState[fieldName]);
+    validateField(fieldName, form.value[fieldName]);
   });
 };
 
@@ -136,111 +158,45 @@ watch(
   (newVisible) => {
     if (newVisible) {
       localvisible.value = newVisible;
-      if (props.editMode && props.currentRecord) {
-        // 编辑模式，填充表单数据
-        Object.assign(formState, {
-          id: props.currentRecord.id,
-          equipment_no: props.currentRecord.equipment_no || '',
-          test_date: props.currentRecord.test_date,
-          inspector: props.currentRecord.inspector,
-          electrolyte_type: props.currentRecord.electrolyte_type,
-          temperature: props.currentRecord.temperature,
-          conductivity: props.currentRecord.conductivity,
-          water_data1: props.currentRecord.water_data1,
-          water_data2: props.currentRecord.water_data2,
-          ph: props.currentRecord.ph,
-          flash_voltage: props.currentRecord.flash_voltage,
-          measurement: props.currentRecord.measurement || '',
-          verifier: props.currentRecord.verifier || '',
-          retest_new_solution: props.currentRecord.retest_new_solution,
-          water_id1: props.currentRecord.water_id1 || '',
-          water_id2: props.currentRecord.water_id2 || '',
-          overall_result: props.currentRecord.overall_result,
-        });
-        overallResult.value = props.currentRecord.overall_result;
-        // 编辑模式下加载数据后验证所有字段
-        validateAllFields();
-      } else {
-        // 新增模式，重置表单数据
-        const currentUser = userStore.userInfo;
-        const currentUserName = currentUser?.realName || currentUser?.username || '';
-        Object.assign(formState, {
-          equipment_no: '',
-          form_number: 'MDR44A3',
-          test_date: dayjs().format('YYYY-MM-DD'),
-          inspector: currentUserName,
-          electrolyte_type: '',
-          temperature: 0,
-          conductivity: 0,
-          water_data1: 0,
-          water_data2: 0,
-          ph: 0,
-          flash_voltage: 0,
-          measurement: '',
-          verifier: '',
-          retest_new_solution: false,
-          water_id1: '',
-          water_id2: '',
-          overall_result: false,
-        });
-        overallResult.value = false;
-        // 新增模式下初始化数据后验证所有字段
+      if (props.editMode && props.record) {
+        // 编辑
+        Object.assign(form, props.record);
+        // formCache.value = form;
         validateAllFields();
       }
     }
   },
-  { immediate: true }, // 增加immediate选项，确保初始化时也能执行一次
 );
-
-// 监听localvisible变化，通知父组件更新状态
-watch(localvisible, (newVisible) => {
-  emit('update:visible', newVisible);
-});
-
-const handleSave = () => {
-  formRef.value.validate().then(() => {
-    overallResult.value = isOverallValid.value;
-    saving.value = true;
-    if (!props.editMode) {
-      formState.created_at = dayjs().format('YYYY-MM-DD HH:mm:ss');
+// 点击保存
+const handleOk = () => {
+  if (isDirty()) {
+    if (props.editMode) {
+      // 编辑模式：只提交脏字段
+      emit('save', { item: getDirtyFields() });
+    } else {
+      // 新增模式：提交整个表单（form.value）
+      emit('save', { item: form.value });
     }
-    try {
-      props.onSave({
-        item: { ...formState },
-      });
-      localvisible.value = false;
-    } catch (error) {
-      console.error('保存失败:', error);
-    } finally {
-      saving.value = false;
-    }
-  });
+  } else {
+    message.info('内容没有变化！');
+    emit('cancel');
+  }
 };
 
-const onFinishFailed = (errorInfo: any) => {
-  console.error('Failed:', errorInfo);
-};
-
-// 内部取消逻辑，设置localvisible为false，会通过watch通知父组件
+// 点击取消
 const handleCancel = () => {
-  localvisible.value = false;
+  emit('cancel');
 };
 </script>
 
 <template>
   <Modal
-    v-model:open="localvisible"
+    :open="props.visible"
     :title="editMode ? '编辑检测记录' : '新增检测记录'"
     width="880px"
     height="1000px"
   >
-    <Form
-      ref="formRef"
-      :model="formState"
-      layout="vertical"
-      @finish="handleSave"
-      @finish-failed="onFinishFailed"
-    >
+    <Form :model="form" layout="vertical" @finish="handleOk" @cancel="handleCancel">
       <Row :gutter="16">
         <Col :span="6">
           <FormItem
@@ -248,7 +204,7 @@ const handleCancel = () => {
             name="equipment_no"
             :rules="[{ required: true, message: '请输入设备号' }]"
           >
-            <Input v-model:value="formState.equipment_no" placeholder="请输入设备号" />
+            <Input v-model:value="form.equipment_no" placeholder="请输入设备号" />
           </FormItem>
         </Col>
         <Col :span="6">
@@ -257,7 +213,7 @@ const handleCancel = () => {
             name="electrolyte_type"
             :rules="[{ required: true, message: '请选择电解液型号' }]"
           >
-            <Input v-model:value="formState.electrolyte_type" placeholder="请输入电解液型号" />
+            <Input v-model:value="form.electrolyte_type" placeholder="请输入电解液型号" />
           </FormItem>
         </Col>
         <Col :span="6">
@@ -267,7 +223,7 @@ const handleCancel = () => {
             :rules="[{ required: true, message: '请选择检测日期' }]"
           >
             <DatePicker
-              v-model:value="formState.test_date"
+              v-model:value="form.test_date"
               value-format="YYYY-MM-DD"
               style="width: 100%"
               placeholder="选择检测日期"
@@ -277,7 +233,7 @@ const handleCancel = () => {
 
         <Col :span="6">
           <FormItem label="表单号" name="formNumber">
-            <Input v-model:value="formState.form_number" style="width: 100%" />
+            <Input v-model:value="form.form_number" style="width: 100%" />
           </FormItem>
         </Col>
       </Row>
@@ -287,7 +243,7 @@ const handleCancel = () => {
         <Col :span="6">
           <FormItem label="温度" name="temperature">
             <InputNumber
-              v-model:value="formState.temperature"
+              v-model:value="form.temperature"
               placeholder="请输入温度"
               :min="0"
               :step="0.1"
@@ -303,13 +259,13 @@ const handleCancel = () => {
             :validate-status="fieldValidity.conductivity === false ? 'warning' : 'success'"
           >
             <InputNumber
-              v-model:value="formState.conductivity"
+              v-model:value="form.conductivity"
               placeholder="请输入电导率"
               :min="0"
               :step="0.01"
               :precision="2"
               style="width: 100%"
-              @change="validateField('conductivity', formState.conductivity)"
+              @change="validateField('conductivity', form.conductivity)"
             />
           </FormItem>
         </Col>
@@ -321,13 +277,13 @@ const handleCancel = () => {
             :validate-status="fieldValidity.ph === false ? 'warning' : 'success'"
           >
             <InputNumber
-              v-model:value="formState.ph"
+              v-model:value="form.ph"
               placeholder="请输入PH值"
               :min="0"
               :step="0.1"
               :precision="1"
               style="width: 100%"
-              @change="validateField('ph', formState.ph)"
+              @change="validateField('ph', form.ph)"
             />
           </FormItem>
         </Col>
@@ -339,12 +295,12 @@ const handleCancel = () => {
             :validate-status="fieldValidity.flash_voltage === false ? 'warning' : 'success'"
           >
             <InputNumber
-              v-model:value="formState.flash_voltage"
+              v-model:value="form.flash_voltage"
               placeholder="请输入闪火电压"
               :min="0"
               :step="1"
               style="width: 100%"
-              @change="validateField('flash_voltage', formState.flash_voltage)"
+              @change="validateField('flash_voltage', form.flash_voltage)"
             />
           </FormItem>
         </Col>
@@ -354,7 +310,7 @@ const handleCancel = () => {
       <Row :gutter="16">
         <Col :span="6">
           <FormItem label="编号1" name="water_id1">
-            <Input v-model:value="formState.water_id1" placeholder="请输入编号" />
+            <Input v-model:value="form.water_id1" placeholder="请输入编号" />
           </FormItem>
         </Col>
         <Col :span="6">
@@ -365,19 +321,19 @@ const handleCancel = () => {
             :validate-status="fieldValidity.water_data1 === false ? 'warning' : 'success'"
           >
             <InputNumber
-              v-model:value="formState.water_data1"
+              v-model:value="form.water_data1"
               placeholder="请输入数值"
               :min="0"
               :step="0.001"
               :precision="3"
               style="width: 100%"
-              @change="validateField('water_data1', formState.water_data1)"
+              @change="validateField('water_data1', form.water_data1)"
             />
           </FormItem>
         </Col>
         <Col :span="6">
           <FormItem label="编号2" name="water_id2">
-            <Input v-model:value="formState.water_id2" placeholder="请输入编号" />
+            <Input v-model:value="form.water_id2" placeholder="请输入编号" />
           </FormItem>
         </Col>
         <Col :span="6">
@@ -388,13 +344,13 @@ const handleCancel = () => {
             :validate-status="fieldValidity.water_data2 === false ? 'warning' : 'success'"
           >
             <InputNumber
-              v-model:value="formState.water_data2"
+              v-model:value="form.water_data2"
               placeholder="请输入数值"
               :min="0"
               :step="0.001"
               :precision="3"
               style="width: 100%"
-              @change="validateField('water_data2', formState.water_data2)"
+              @change="validateField('water_data2', form.water_data2)"
             />
           </FormItem>
         </Col>
@@ -403,17 +359,17 @@ const handleCancel = () => {
       <Row :gutter="16">
         <Col :span="6">
           <FormItem label="  " name="retestWithNewSolution">
-            <Checkbox v-model:checked="formState.retest_new_solution"> 加新液重测 </Checkbox>
+            <Checkbox v-model:checked="form.retest_new_solution"> 加新液重测 </Checkbox>
           </FormItem>
         </Col>
         <Col :span="6">
           <FormItem label="操作者" name="operator">
-            <Input v-model:value="formState.inspector" placeholder="请输入操作者" />
+            <Input v-model:value="form.inspector" placeholder="请输入操作者" />
           </FormItem>
         </Col>
         <Col :span="6">
           <FormItem label="核实人" name="verifier">
-            <Input v-model:value="formState.verifier" placeholder="请输入核实人" />
+            <Input v-model:value="form.verifier" placeholder="请输入核实人" />
           </FormItem>
         </Col>
       </Row>
@@ -422,7 +378,7 @@ const handleCancel = () => {
         <Tag :color="overallResult ? 'green' : 'red'" size="large">
           {{ overallResult === true ? '合格' : '不合格' }}
         </Tag>
-        <div v-if="overallResult" style="margin-top: 8px; color: #ff4d4f">
+        <div v-if="isOverallValid" style="margin-top: 8px; color: #ff4d4f">
           提示：请检查各项指标是否符合标准要求
         </div>
       </FormItem>
@@ -430,7 +386,7 @@ const handleCancel = () => {
     <!-- 自定义modal footer -->
     <template #footer>
       <Button @click="handleCancel">取消</Button>
-      <Button key="submit" type="primary" @click="handleSave" :loading="saving">保存</Button>
+      <Button key="submit" type="primary" @click="handleOk" :loading="saving">保存</Button>
     </template>
   </Modal>
 </template>

@@ -46,7 +46,7 @@ catalog:
   '@types/jsonwebtoken': ^9.0.10
   '@types/lodash.clonedeep': ^4.5.9
   '@types/lodash.get': ^4.4.9
-  '@types/lodash.isequal': ^4.5.8
+  '@types/lodash.isequal': 4.5.8
   '@types/lodash.set': ^4.3.9
   '@types/node': ^22.16.0
   '@types/nprogress': ^0.2.3

@@ -316,44 +316,54 @@ const handleDelete = (record: ElectrolyteTest) => {
   });
 };
 
-// 保存记录
-const handleSave = async (formData: UpdateParams<ElectrolyteTest>) => {
+// === 保存记录 ===
+const handleSave = async (formData: { item: Partial<ElectrolyteTest> }) => {
   try {
-    if (formData || (editMode.value && currentRecord.value)) {
-      // 过滤formData.item中的空字段
-      if (formData && formData.item) {
-        const filteredItem: Record<string, any> = { ...formData.item };
-        // 移除值为null、undefined或空字符串的字段
-        Object.keys(filteredItem).forEach((key) => {
-          const value = filteredItem[key];
-          if (value === null || value === undefined || value === '') {
-            delete filteredItem[key];
-          }
-        });
-        // 使用过滤后的item创建新的formData
-        // 修复where参数的类型
-        formData = {
-          where: [
-            {
-              field: 'id',
-              operator: QueryOperator.EQ,
-              value: filteredItem.id,
-            },
-          ],
-          item: filteredItem,
-        };
+    let payload: UpdateParams<ElectrolyteTest>;
+
+    if (editMode.value && currentRecord.value) {
+      // 编辑模式：只提交脏字段
+      if (!formData.item || Object.keys(formData.item).length === 0) {
+        message.info('没有修改内容');
+        return;
       }
 
-      await updateIerec(formData);
-      message.success('更新成功');
+      payload = {
+        where: [
+          {
+            field: 'id',
+            operator: QueryOperator.EQ,
+            value: currentRecord.value.id,
+          },
+        ],
+        item: formData.item,
+      };
+    } else {
+      // 新增模式：提交完整表单
+      const filteredItem: Record<string, any> = { ...formData.item };
+      Object.keys(filteredItem).forEach((key) => {
+        const value = filteredItem[key];
+        if (value === null || value === undefined || value === '') {
+          delete filteredItem[key];
+        }
+      });
+
+      payload = {
+        where: [],
+        item: filteredItem,
+      };
     }
 
-    // 保存后重新加载数据，回到第一页
-    gridApi.reload();
+    await updateIerec(payload);
+    message.success(editMode.value ? '更新成功' : '新增成功');
+    modelValue.value = false;
+
+    // 刷新数据
+    gridApi.query();
   } catch (error) {
     console.error('保存失败:', error);
     message.error('保存失败，请重试');
-    throw error; // 重新抛出错误，让子组件知道保存失败
+    throw error;
   }
 };
 
@@ -388,8 +398,9 @@ onMounted(() => {
     <FormModal
       v-model:visible="modelValue"
       :edit-mode="editMode"
-      :current-record="currentRecord"
-      :on-save="handleSave"
+      :record="currentRecord"
+      @save="handleSave"
+      @cancel="() => (modelValue = false)"
     />
   </Page>
 </template>

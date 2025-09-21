@@ -56,10 +56,6 @@
     "version": "pnpm exec changeset version && pnpm install --no-frozen-lockfile",
     "catalog": "pnpx codemod pnpm/catalog"
   },
-  "dependencies": {
-    "@ant-design/icons-vue": "^7.0.1",
-    "xe-utils": "^3.7.9"
-  },
   "devDependencies": {
     "@changesets/changelog-github": "catalog:",
     "@changesets/cli": "catalog:",
@@ -98,7 +94,7 @@
     "node": ">=20.10.0",
     "pnpm": ">=9.12.0"
   },
-  "packageManager": "pnpm@10.16.1",
+  "packageManager": "pnpm@10.17.0",
   "pnpm": {
     "peerDependencyRules": {
       "allowedVersions": {
@@ -117,5 +113,8 @@
       "canvas",
       "node-gyp"
     ]
+  },
+  "dependencies": {
+    "xe-utils": "^3.7.9"
   }
 }

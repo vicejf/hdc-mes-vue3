@@ -376,14 +376,13 @@ onMounted(() => {
 <template>
   <Page
     description="水份超过警戒线时添加同型号新液，重测水份小于警戒线，超过标准线时填写内部质量信息联络单。"
-    title="注意"
   >
     <Card class="mb-3">
       <!-- 搜索区域 -->
       <AdvancedSearchCondition :fields="searchFields" @search="handleSearch" @reset="handleReset" />
     </Card>
     <!-- 表格区域 -->
-    <Grid style="width: 100%; height: 500px; overflow: hidden">
+    <Grid style="width: 100%; height: 550px; overflow: hidden">
       <template #form></template>
       <template #toolbarButtons>
         <Button status="primary" @click="handleAdd">新增</Button>

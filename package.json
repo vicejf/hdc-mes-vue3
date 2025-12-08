@@ -115,6 +115,6 @@
     ]
   },
   "dependencies": {
-    "xe-utils": "^3.7.9"
+    "xe-utils": "^3.8.0"
   }
 }
